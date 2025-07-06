@@ -71,7 +71,7 @@ public class BookingController {
 
             boolean hasNewBooking = bookingService.saveBooking(newBooking);
             if ((boolean) hasNewBooking) {
-                return ResponseEntity.ok("Hotel Booked Successfully");
+                return ResponseEntity.ok("Hotel Booked Successfully" + newBooking.getBookingId());
             } else {
                 return ResponseEntity.status(500).body("Could not Book Hotel. Please try again!");
             }
