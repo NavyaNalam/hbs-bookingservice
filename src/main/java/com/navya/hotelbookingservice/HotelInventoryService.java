@@ -35,8 +35,8 @@ public class HotelInventoryService {
         hotelRepo.deleteById(id);
     }
 
-    public int updateNumOfRoomsAvailable(long id, int numOfRoom) {
-        Optional<Hotel> hotel = hotelRepo.findById(id);
+    public int updateNumOfRoomsAvailable(String hotelName, int numOfRoom) {
+        Optional<Hotel> hotel = hotelRepo.findByHotelName(hotelName);
         return hotel.get().getNumOfRoomsAvailable();
     }
 

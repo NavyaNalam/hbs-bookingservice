@@ -24,7 +24,6 @@ public class HotelInventoryController
     @Autowired
     TokenService tokenService;
 
-
     @Autowired
     HotelInventoryService hotelService;
 
@@ -55,6 +54,11 @@ public class HotelInventoryController
         try
         {
             id =  tokenService.validateToken(token);
+            if( id == null)
+            {
+                logger.info("Token validation failed: Token is null");
+                return ResponseEntity.status(401).body("Invalid token");
+            }
         }
         catch (WebClientResponseException e)
         {
@@ -64,12 +68,6 @@ public class HotelInventoryController
 
         Optional<Hotel> hotelFetched = hotelService.findHotelByName(HotelName);
         logger.info("Phone number from token: " + id);
-        if(!id.equals(hotelFetched.get().getId()))
-        {
-            logger.info("Token Validation Mismatch: " + id + " vs " + hotelFetched.get().getId());
-            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
-        }
-
         return ResponseEntity.ok("Hotel Details fetched Successfully: " + hotelFetched.get().toString());
     }
 
@@ -90,11 +88,11 @@ public class HotelInventoryController
 
         Optional<Hotel> hotelFetched = hotelService.findHotelByName(HotelName);
         logger.info("Phone number from token: " + id);
-        if(!id.equals(hotelFetched.get().getId()))
+/*        if(!id.equals(hotelFetched.get().getId()))
         {
             logger.info("Token Validation Mismatch: " + id + " vs " + hotelFetched.get().getId());
             return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
-        }
+        }*/
 
         List<Hotel> allHotels = hotelService.getAllHotels();
 
@@ -103,22 +101,51 @@ public class HotelInventoryController
 
 
     @DeleteMapping("delete")
-    public ResponseEntity<?> deleteHotel(@RequestParam String hotelName) {
-        logger.debug("Deleting inventory with Hotel Name: " + hotelName);
-        Optional<Hotel> existingHotel = hotelInfoRepository.findById(hotelName);
-        if (existingHotel.isPresent()) {
-            logger.debug("Deleting Hotel Inventory with name: " + hotelName);
-            hotelInfoRepository.delete(existingHotel.get());
-            return ResponseEntity.status(HttpStatus.OK).body("Hotel Inventory deleted successfully");
-        } else {
-            logger.debug("Hotel with Name " + hotelName + " does not exist");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Hotel with name " + hotelName + " does not exist");
+    public ResponseEntity<?> deleteHotel(@RequestParam String hotelName,  @RequestHeader("Authorization") String token) {
+        String id = null;
+        String role = null;
+        try
+        {
+            id =  tokenService.validateToken(token);
+            if(id.isEmpty()){
+                logger.info("Token validation failed: Token is empty");
+                return ResponseEntity.status(401).body("Invalid token");
+            }
+            else{
+                logger.info("Token validation successful for phone: " + id);
+                role = tokenService.getRoleFromToken(token);
+            }
         }
+        catch (WebClientResponseException e)
+        {
+            logger.info("Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+
+        if(role.equals("ADMIN")){
+            logger.info("User is an ADMIN, proceeding with deletion");
+            logger.debug("Deleting inventory with Hotel Name: " + hotelName);
+            Optional<Hotel> existingHotel = hotelInfoRepository.findById(hotelName);
+            if (existingHotel.isPresent()) {
+                logger.debug("Deleting Hotel Inventory with name: " + hotelName);
+                hotelInfoRepository.delete(existingHotel.get());
+                return ResponseEntity.status(HttpStatus.OK).body("Hotel Inventory deleted successfully");
+            } else {
+                logger.debug("Hotel with Name " + hotelName + " does not exist");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Hotel with name " + hotelName + " does not exist");
+            }
+        } else {
+            logger.info("User is not an ADMIN, cannot delete hotel inventory");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only ADMIN can delete hotel inventory");
+        }
+
     }
 
-    @PutMapping("/update-num-of-rooms/{id}")
-    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("id") Long id, @RequestBody int newRoomsNum) {
-        int rowUpdated = hotelService.updateNumOfRoomsAvailable(id, newRoomsNum);
+    @PutMapping("/update-num-of-rooms/{name}")
+    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("name") String name, @RequestBody int newRoomsNum) {
+        logger.info("Updating number of rooms for hotel: " + name + " to " + newRoomsNum);
+
+        int rowUpdated = hotelService.updateNumOfRoomsAvailable(name, newRoomsNum);
         if (rowUpdated > 0) {
             return ResponseEntity.ok(rowUpdated);
         }

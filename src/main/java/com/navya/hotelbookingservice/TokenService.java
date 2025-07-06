@@ -28,5 +28,15 @@ public class TokenService
                 .block(); // Assuming the token is valid for demonstration purposes
     }
 
+    public String getRoleFromToken(String token) throws WebClientResponseException
+    {
+        logger.info("TokenService.validateToken() called with token: " + token);
+        return authValidateWebClient.get()
+                .header("Authorization", token)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block(); // Assuming the token is valid for demonstration purposes
+    }
+
 
 }

@@ -18,10 +18,10 @@ import java.util.Date;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long bookingId;
 
-    Long userId;
+    Long userId; // Phone Number of the User
 
     Long hotelId;
 

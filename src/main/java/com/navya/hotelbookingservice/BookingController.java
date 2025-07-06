@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 
@@ -21,34 +22,59 @@ public class BookingController {
     @Autowired
     BookingService bookingService;
 
+    @Autowired
+    TokenService tokenService;
+
     @GetMapping("bookings")
-    public List<Booking> getAllBookings() {
-        logger.info("Inside getAllBookings of BookingController");
-        return bookingService.findAll();
+    public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String token) {
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
+            logger.info("Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Token Not Found");
+        }
+
+        logger.info("User Fetched Bookings Successfully");
+        return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findAll());
     }
 
-    @PostMapping("/add-booking/{hotel-id}")
-    public ResponseEntity<String> addBooking(@PathVariable("hotel-id") Long hotelId, @RequestBody Booking booking) {
-        logger.info("Inside addBooking of BookingController");
-        Object hasNewBooking = bookingService.saveBooking(hotelId, booking);
-        if ((boolean) hasNewBooking) {
-            return ResponseEntity.ok("Hotel Booked Successfully");
+    @PostMapping("/add-booking/{hotelname}")
+    public ResponseEntity<String> addBooking(@PathVariable("hotelname") Long hotelName, @RequestBody Booking booking, @RequestHeader("Authorization") String token) {
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
+            logger.info("Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
+        } else if (!phone.equals(booking.getUserId())) {
+            logger.info("Token validation failed: Phone number mismatch");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
         } else {
-            return ResponseEntity.badRequest().body("Could not Book Hotel. Please try again!");
+            logger.info("Token validation successful: Phone number matches");
+            logger.info("Inside addBooking of BookingController");
+            Object hasNewBooking = bookingService.saveBooking(hotelName, booking);
+            if ((boolean) hasNewBooking) {
+                return ResponseEntity.ok("Hotel Booked Successfully");
+            } else {
+                return ResponseEntity.status(500).body("Could not Book Hotel. Please try again!");
+            }
         }
     }
 
-
-    @GetMapping("/{id}")
-    public Booking findABooking(@PathVariable("id") Long id) {
-        logger.info("Inside findABooking of BookingController");
-        return bookingService.findBookingById(id);
-    }
-
-/*    @GetMapping("/user-bookings/{user-id}")
-    public ResponseEntity<List<Hotel>> getUserBookedHotels(@PathVariable("user-id") Long userId) {
-        logger.info("Inside getUserBookedHotels of BookingController");
-        return ResponseEntity.ok(bookingService.getUserBookedHotels(userId));
-
-    }*/
+        @GetMapping("/{id}")
+        public ResponseEntity<?> findABooking (@PathVariable("id") Long id){
+            logger.info("Inside findABooking of BookingController");
+            return ResponseEntity.ok(bookingService.findBookingById(id));
+        }
 }
+
+
