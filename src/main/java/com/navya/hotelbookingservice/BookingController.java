@@ -43,8 +43,8 @@ public class BookingController {
         return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findAll());
     }
 
-    @PostMapping("/add-booking/{hotelname}")
-    public ResponseEntity<String> addBooking(@PathVariable("hotelname") Long hotelName, @RequestBody Booking booking, @RequestHeader("Authorization") String token) {
+    @PostMapping("/book/")
+    public ResponseEntity<String> addBooking(@RequestBody RequestBooking bookingRequest, @RequestHeader("Authorization") String token) {
         String phone = null;
         try {
             phone = tokenService.validateToken(token);
@@ -55,13 +55,21 @@ public class BookingController {
         if (phone.isEmpty()) {
             logger.info("Token validation failed: Phone number is empty");
             return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
-        } else if (!phone.equals(booking.getUserId())) {
+        } else if (!phone.equals(bookingRequest.getUserId())) {
             logger.info("Token validation failed: Phone number mismatch");
             return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
         } else {
             logger.info("Token validation successful: Phone number matches");
             logger.info("Inside addBooking of BookingController");
-            Object hasNewBooking = bookingService.saveBooking(hotelName, booking);
+
+            Booking newBooking = new Booking();
+            newBooking.setHotelName(bookingRequest.getHotelName());
+            newBooking.setUserId(bookingRequest.getUserId());
+            newBooking.setNumOfRoomsBooked(bookingRequest.getNumOfRooms());
+            newBooking.setStartDate(bookingRequest.getCheckInDate());
+            newBooking.setEndDate(bookingRequest.getCheckOutDate());
+
+            boolean hasNewBooking = bookingService.saveBooking(newBooking);
             if ((boolean) hasNewBooking) {
                 return ResponseEntity.ok("Hotel Booked Successfully");
             } else {
@@ -70,11 +78,13 @@ public class BookingController {
         }
     }
 
-        @GetMapping("/{id}")
+        @GetMapping("getbooking/{id}")
         public ResponseEntity<?> findABooking (@PathVariable("id") Long id){
             logger.info("Inside findABooking of BookingController");
             return ResponseEntity.ok(bookingService.findBookingById(id));
         }
+
+
 }
 
 

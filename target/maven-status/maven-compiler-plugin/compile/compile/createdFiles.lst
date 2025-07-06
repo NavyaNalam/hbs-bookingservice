@@ -1,2 +1,14 @@
-com\navya\hotelbookingservice\AppConfig.class
+com\navya\hotelbookingservice\HotelBookingServiceApplication.class
+com\navya\hotelbookingservice\HotelInventoryController.class
+com\navya\hotelbookingservice\RequestBooking.class
+com\navya\hotelbookingservice\LoggingWebClientFilter.class
 com\navya\hotelbookingservice\Booking.class
+com\navya\hotelbookingservice\TokenService.class
+com\navya\hotelbookingservice\AppConfig.class
+com\navya\hotelbookingservice\Hotel.class
+com\navya\hotelbookingservice\BookingController.class
+com\navya\hotelbookingservice\HotelInventoryService.class
+com\navya\hotelbookingservice\RequestIdExtractor.class
+com\navya\hotelbookingservice\BookingRepository.class
+com\navya\hotelbookingservice\BookingService.class
+com\navya\hotelbookingservice\HotelRepository.class

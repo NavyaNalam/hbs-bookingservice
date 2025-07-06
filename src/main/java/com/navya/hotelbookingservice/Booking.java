@@ -18,38 +18,34 @@ import java.util.Date;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long bookingId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long bookingId;
 
-    Long userId; // Phone Number of the User
-
-    Long hotelId;
+    String userId; // Phone Number of the User
 
     String hotelName;
 
-    @Column(name = "booked_rooms_num")
-    Integer bookedRoomsNum;
+    Integer numOfRoomsBooked;
 
-    @Column(name = "booking_status")
     String bookingStatus;
 
-
-    @Column(name = "start_date", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date startDate;
 
-    @Column(name = "end_date", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date endDate;
+
+    //Double totalPrice;
+
+
 
     @Override
     public String toString() {
         return "Booking{" +
                 "bookingId=" + bookingId +
                 ", userId=" + userId +
-                ", hotelId=" + hotelId +
                 ", hotelName='" + hotelName + '\'' +
-                ", bookedRoomsNum=" + bookedRoomsNum +
+                ", numOfRoomsBooked=" + numOfRoomsBooked +
                 ", bookingStatus='" + bookingStatus + '\'' +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +

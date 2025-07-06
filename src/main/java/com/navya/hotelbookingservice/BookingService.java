@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,16 +38,16 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
-    public Object saveBooking(Long hotelId, Booking booking) {
-        logger.info("Inside saveBooking of BookingService");
+    public boolean saveBooking(Booking booking) {
+        logger.info("Creating Booking for Hotel: " + booking.getHotelName() + " with User ID: " + booking.getUserId());
 
         //Get the Hotel from the Booking
         Optional<Hotel> hotel = hotelRepository.findByHotelName(booking.getHotelName());
         if (hotel.isEmpty()) {
             logger.debug("Hotel Inventory doesnt exist for Hotel Name: " + booking.getHotelName());
-            return ResponseEntity.status(404).body("Hotel Inventory doesnt exist for Hotel Name: " + booking.getHotelName() + " not found");
+            return false;
         } else {
-            int bookedRooms = booking.getBookedRoomsNum();
+            int bookedRooms = booking.getNumOfRoomsBooked();
             int numOfRoomsAvailable = hotel.get().getNumOfRoomsAvailable();
 
             // Check to see if there are available rooms
@@ -57,7 +58,7 @@ public class BookingService {
                 // update the hotel number of rooms available
                 int numOfHotelRoomRemaining = numOfRoomsAvailable - bookedRooms;
                 int updatedRow;
-                updatedRow = hotelInventoryService.updateNumOfRoomsAvailable(hotelId, numOfHotelRoomRemaining);
+                updatedRow = hotelInventoryService.updateNumOfRoomsAvailable(booking.getHotelName(), numOfHotelRoomRemaining);
 
                 int i = updatedRow;
 
@@ -65,7 +66,7 @@ public class BookingService {
                     return false;
                 }
 
-                booking.setBookingStatus("booked");
+                booking.setBookingStatus("pending");
 
                 //create the booking
                 bookingRepository.save(booking);
