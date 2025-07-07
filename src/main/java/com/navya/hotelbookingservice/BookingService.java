@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -25,31 +27,39 @@ public class BookingService {
     private HotelRepository hotelRepository;
 
     @Autowired
+    BookingEventProducer bookingEventProducer;
+
+    @Autowired
     WebClient webClientBuilder;
 
     @Autowired
     private HotelInventoryService hotelInventoryService;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private Integer amountPerRoom = 1000; // Assuming a fixed amount per room for simplicity
 
     public List<Booking> findAll() {
         return bookingRepository.findAll();
     }
 
     @Transactional
-    public boolean createBooking(Booking booking) {
+    public ResponseEntity<?> createBooking(Booking booking) {
         logger.info("Creating Booking for Hotel: " + booking.getHotelName() + " with User ID: " + booking.getUserId());
 
         //Get the Hotel from the Booking
         Optional<Hotel> hotel = hotelRepository.findByHotelName(booking.getHotelName());
         if (hotel.isEmpty()) {
             logger.debug("Hotel Inventory doesnt exist for Hotel Name: " + booking.getHotelName());
-            return false;
+            return ResponseEntity.status(404).body("Hotel Not found for the Hotel Name: " + booking.getHotelName());
         } else {
             int bookedRooms = booking.getNumOfRoomsBooked();
             int numOfRoomsAvailable = hotel.get().getNumOfRoomsAvailable();
 
             // Check to see if there are available rooms
             if (numOfRoomsAvailable <= 0 || bookedRooms > numOfRoomsAvailable) {
-                return false;
+                return ResponseEntity.status(500).body("Could not Book Hotel. No Rooms Available!");
             } else {
 
                 // update the hotel number of rooms available
@@ -60,17 +70,28 @@ public class BookingService {
                 int i = updatedRow;
 
                 if (i == 0) {
-                    return false;
+                    return ResponseEntity.status(500).body("Could not Book Hotel. Please try again!");
                 }
 
                 booking.setBookingStatus("pending");
+                Integer totalFare = booking.getNumOfRoomsBooked() * amountPerRoom;
+                booking.setTotalPrice(totalFare);
 
                 //create the booking
                 bookingRepository.save(booking);
 
-                //Handle the Payment Service call here
 
-                return true;
+                //Handle the Payment Service call here
+                BookingEvent bookingEvent = new BookingEvent();
+                bookingEvent.setBookingId(booking.getBookingId());
+                bookingEvent.setTotalFare(totalFare);
+                bookingEvent.setUserId(booking.getUserId());
+
+                redisTemplate.opsForValue().set(booking.getBookingId().toString(), "Payment In Progress");
+                //Publish the booking event to Kafka
+                bookingEventProducer.publishEvent(bookingEvent);
+                return ResponseEntity.status(HttpStatus.CREATED).body("Booking added successfully");
+
             }
 
         }

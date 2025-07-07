@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class BookingEvent implements Serializable {
     private Long bookingId;
     private String userId;
-    private Double totalFare;
+    private Integer totalFare;
 
     @Override
     public String toString() {

@@ -31,8 +31,8 @@ public class PaymentEventConsumer {
 
         if (paymentEvent.getStatus().contentEquals("SUCCESS")) {
             logger.info("Payment processed successfully for booking ID: {}", paymentEvent.getBookingId());
-            // Here you can add logic to update the ticket status or notify the user
             bookingService.confirmBooking(paymentEvent.getBookingId());
+            //Notify the user about successful payment
         } else if (paymentEvent.getStatus().contentEquals("FAILURE")) {
             logger.error("Payment processing failed for booking ID: {}", paymentEvent.getBookingId());
             // Here you can add logic to handle payment failure, e.g., notify the user or retry

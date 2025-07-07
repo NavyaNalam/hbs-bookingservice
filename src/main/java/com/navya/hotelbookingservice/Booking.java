@@ -35,7 +35,7 @@ public class Booking {
     @JsonFormat(pattern = "yyyy-MM-dd")
     Date endDate;
 
-    Double totalPrice;
+    Integer totalPrice;
 
 
 
