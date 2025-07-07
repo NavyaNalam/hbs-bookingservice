@@ -1,6 +1,6 @@
 package com.navya.hotelbookingservice;
 
-import jakarta.transaction.Transactional;
+//import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class BookingService {
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
     @Autowired
-    private BookingRepository bookingRepository;
+    private BookingRepository bookingRepo;
 
     @Autowired
     private HotelRepository hotelRepository;
@@ -41,10 +41,10 @@ public class BookingService {
     private Integer amountPerRoom = 1000; // Assuming a fixed amount per room for simplicity
 
     public List<Booking> findAll() {
-        return bookingRepository.findAll();
+        return bookingRepo.findAll();
     }
 
-    @Transactional
+
     public ResponseEntity<?> createBooking(Booking booking) {
         logger.info("Creating Booking for Hotel: " + booking.getHotelName() + " with User ID: " + booking.getUserId());
 
@@ -78,7 +78,7 @@ public class BookingService {
                 booking.setTotalPrice(totalFare);
 
                 //create the booking
-                bookingRepository.save(booking);
+                bookingRepo.save(booking);
 
 
                 //Handle the Payment Service call here
@@ -99,14 +99,14 @@ public class BookingService {
 
     public Optional<Booking> findBookingById(Long id)
     {
-        return bookingRepository.findBookingById(id);
+        return bookingRepo.findBookingByBookingId(id);
     }
 
     // This should be coming from Payment Service not from user
-    @Transactional
+
     public ResponseEntity<?> confirmBooking(Long bookingId) {
         logger.debug("Confirming Booking: " + bookingId);
-        Optional<Booking> existingBooking = bookingRepository.findBookingById(bookingId);
+        Optional<Booking> existingBooking = bookingRepo.findBookingByBookingId(bookingId);
         if (existingBooking.isEmpty()) {
             logger.debug("Booking not found for ID: " + bookingId);
             return ResponseEntity.status(404).body("Booking with ID: " + bookingId + " not found");
@@ -117,16 +117,16 @@ public class BookingService {
                 return ResponseEntity.status(400).body("Reservation is not in pending status");
             }
             booking.setBookingStatus("Confirmed");
-            bookingRepository.save(booking); // Save the updated Booking
+            bookingRepo.save(booking); // Save the updated Booking
             logger.debug("Booking confirmed successfully: " + booking);
             return ResponseEntity.ok("Booking confirmed successfully");
         }
     }
 
-    @Transactional
+    //@Transactional
     public ResponseEntity<?> cancelBooking(Long bookingId) {
         logger.debug("Cancelling reservation: " + bookingId);
-        Optional<Booking> existingBooking = bookingRepository.findBookingById(bookingId);
+        Optional<Booking> existingBooking = bookingRepo.findBookingByBookingId(bookingId);
         if (existingBooking.isEmpty()) {
             logger.debug("Booking not found for ID: " + bookingId);
             return ResponseEntity.status(404).body("Booking with ID: " + bookingId + " not found");
@@ -147,7 +147,7 @@ public class BookingService {
 
             bookingFound.setBookingStatus("Cancelled");
             // Delete the Booking
-            bookingRepository.save(existingBooking.get());
+            bookingRepo.save(existingBooking.get());
             logger.debug("Booking cancelled successfully: " + bookingFound);
             return ResponseEntity.ok("Booking cancelled successfully");
         }

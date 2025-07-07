@@ -5,8 +5,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+
 public interface BookingRepository extends MongoRepository<Booking, String> {
 
-    Optional<Booking> findBookingById(Long id);
+    Optional<Booking> findBookingByBookingId(Long bookingId);
 }
