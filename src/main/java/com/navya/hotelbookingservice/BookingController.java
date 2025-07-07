@@ -69,7 +69,7 @@ public class BookingController {
             newBooking.setStartDate(bookingRequest.getCheckInDate());
             newBooking.setEndDate(bookingRequest.getCheckOutDate());
 
-            boolean hasNewBooking = bookingService.saveBooking(newBooking);
+            boolean hasNewBooking = bookingService.createBooking(newBooking);
             if ((boolean) hasNewBooking) {
                 return ResponseEntity.ok("Hotel Booked Successfully" + newBooking.getBookingId());
             } else {
@@ -83,6 +83,8 @@ public class BookingController {
             logger.info("Inside findABooking of BookingController");
             return ResponseEntity.ok(bookingService.findBookingById(id));
         }
+
+
 
 
 }

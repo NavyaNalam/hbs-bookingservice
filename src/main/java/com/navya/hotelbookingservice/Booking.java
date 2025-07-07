@@ -19,7 +19,7 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long bookingId;
+    Long bookingId;
 
     String userId; // Phone Number of the User
 
@@ -30,12 +30,12 @@ public class Booking {
     String bookingStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date startDate;
+    Date startDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date endDate;
+    Date endDate;
 
-    //Double totalPrice;
+    Double totalPrice;
 
 
 

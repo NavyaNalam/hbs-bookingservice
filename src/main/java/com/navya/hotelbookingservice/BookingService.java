@@ -1,20 +1,16 @@
 package com.navya.hotelbookingservice;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -38,7 +34,8 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
-    public boolean saveBooking(Booking booking) {
+    @Transactional
+    public boolean createBooking(Booking booking) {
         logger.info("Creating Booking for Hotel: " + booking.getHotelName() + " with User ID: " + booking.getUserId());
 
         //Get the Hotel from the Booking
@@ -71,15 +68,68 @@ public class BookingService {
                 //create the booking
                 bookingRepository.save(booking);
 
+                //Handle the Payment Service call here
+
                 return true;
             }
 
         }
     }
 
-    public Booking findBookingById(Long id)
+    public Optional<Booking> findBookingById(Long id)
     {
         return bookingRepository.findBookingById(id);
+    }
+
+    // This should be coming from Payment Service not from user
+    @Transactional
+    public ResponseEntity<?> confirmBooking(Long bookingId) {
+        logger.debug("Confirming Booking: " + bookingId);
+        Optional<Booking> existingBooking = bookingRepository.findBookingById(bookingId);
+        if (existingBooking.isEmpty()) {
+            logger.debug("Booking not found for ID: " + bookingId);
+            return ResponseEntity.status(404).body("Booking with ID: " + bookingId + " not found");
+        } else {
+            Booking booking = existingBooking.get();
+            if (!"Pending".equals(booking.getBookingStatus())) {
+                logger.debug("Booking is not in pending status: " + booking);
+                return ResponseEntity.status(400).body("Reservation is not in pending status");
+            }
+            booking.setBookingStatus("Confirmed");
+            bookingRepository.save(booking); // Save the updated Booking
+            logger.debug("Booking confirmed successfully: " + booking);
+            return ResponseEntity.ok("Booking confirmed successfully");
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<?> cancelBooking(Long bookingId) {
+        logger.debug("Cancelling reservation: " + bookingId);
+        Optional<Booking> existingBooking = bookingRepository.findBookingById(bookingId);
+        if (existingBooking.isEmpty()) {
+            logger.debug("Booking not found for ID: " + bookingId);
+            return ResponseEntity.status(404).body("Booking with ID: " + bookingId + " not found");
+        } else {
+            // Update the inventory
+            Booking bookingFound = existingBooking.get();
+            Optional<Hotel> hotelOptional = hotelRepository.findByHotelName(bookingFound.getHotelName());
+
+            if (hotelOptional.isEmpty()) {
+                logger.debug("Inventory not found for Hotel Name: " + bookingFound.getHotelName());
+                return ResponseEntity.status(404).body("Hotel with Hotel Name: " + bookingFound.getHotelName() + " not found");
+            }
+            Hotel hotel = hotelOptional.get();
+            hotel.setNumOfRoomsAvailable(hotel.getNumOfRoomsAvailable() + bookingFound.getNumOfRoomsBooked());
+
+
+            hotelRepository.save(hotel); // Save the updated inventory
+
+            bookingFound.setBookingStatus("Cancelled");
+            // Delete the Booking
+            bookingRepository.save(existingBooking.get());
+            logger.debug("Booking cancelled successfully: " + bookingFound);
+            return ResponseEntity.ok("Booking cancelled successfully");
+        }
     }
 
 }
