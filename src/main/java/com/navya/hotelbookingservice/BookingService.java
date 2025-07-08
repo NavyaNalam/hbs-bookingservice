@@ -105,20 +105,20 @@ public class BookingService {
     // This should be coming from Payment Service not from user
 
     public ResponseEntity<?> confirmBooking(String bookingId) {
-        logger.debug("Confirming Booking: " + bookingId);
+        logger.info("Confirming Booking: " + bookingId);
         Optional<Booking> existingBooking = bookingRepo.findBookingByBookingId(bookingId);
         if (existingBooking.isEmpty()) {
-            logger.debug("Booking not found for ID: " + bookingId);
+            logger.info("Booking not found for ID: " + bookingId);
             return ResponseEntity.status(404).body("Booking with ID: " + bookingId + " not found");
         } else {
             Booking booking = existingBooking.get();
-            if (!"Pending".equals(booking.getBookingStatus())) {
+/*            if (!"Pending".equals(booking.getBookingStatus())) {
                 logger.debug("Booking is not in pending status: " + booking);
                 return ResponseEntity.status(400).body("Reservation is not in pending status");
-            }
+            }*/
             booking.setBookingStatus("Confirmed");
             bookingRepo.save(booking); // Save the updated Booking
-            logger.debug("Booking confirmed successfully: " + booking);
+            logger.info("Booking confirmed successfully: " + booking);
             return ResponseEntity.ok("Booking confirmed successfully");
         }
     }

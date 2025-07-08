@@ -30,7 +30,7 @@ public class PaymentEventConsumer {
     private void processPaymentEvent(PaymentEvent paymentEvent) {
 
         if (paymentEvent.getStatus().contentEquals("SUCCESS")) {
-            logger.debug("Payment processed successfully for booking ID: {}", paymentEvent.getBookingId());
+            logger.info("Payment processed successfully for booking ID: {}", paymentEvent.getBookingId());
             bookingService.confirmBooking(paymentEvent.getBookingId());
             //Notify the user about successful payment
         } else if (paymentEvent.getStatus().contentEquals("FAILURE")) {
