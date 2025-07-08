@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.persistence.Column;
 import java.util.Date;
 
-@Entity
 @Getter
 @Setter
 @Document(collection = "bookings")
