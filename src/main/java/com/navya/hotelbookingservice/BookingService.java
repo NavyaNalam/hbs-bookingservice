@@ -97,14 +97,14 @@ public class BookingService {
         }
     }
 
-    public Optional<Booking> findBookingById(Long id)
+    public Optional<Booking> findBookingById(String id)
     {
         return bookingRepo.findBookingByBookingId(id);
     }
 
     // This should be coming from Payment Service not from user
 
-    public ResponseEntity<?> confirmBooking(Long bookingId) {
+    public ResponseEntity<?> confirmBooking(String bookingId) {
         logger.debug("Confirming Booking: " + bookingId);
         Optional<Booking> existingBooking = bookingRepo.findBookingByBookingId(bookingId);
         if (existingBooking.isEmpty()) {
@@ -124,7 +124,7 @@ public class BookingService {
     }
 
     //@Transactional
-    public ResponseEntity<?> cancelBooking(Long bookingId) {
+    public ResponseEntity<?> cancelBooking(String bookingId) {
         logger.debug("Cancelling reservation: " + bookingId);
         Optional<Booking> existingBooking = bookingRepo.findBookingByBookingId(bookingId);
         if (existingBooking.isEmpty()) {

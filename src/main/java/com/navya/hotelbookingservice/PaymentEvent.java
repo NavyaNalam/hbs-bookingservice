@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class PaymentEvent {
-    private Long bookingId;;
+    private String bookingId;;
     private Double totalFare;
     private String status; // Added status field to track payment status
 

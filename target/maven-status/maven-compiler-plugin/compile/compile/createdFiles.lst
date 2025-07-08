@@ -7,6 +7,7 @@ com\navya\hotelbookingservice\Booking.class
 com\navya\hotelbookingservice\TokenService.class
 com\navya\hotelbookingservice\AppConfig.class
 com\navya\hotelbookingservice\PaymentEvent.class
+com\navya\hotelbookingservice\RedisConfig.class
 com\navya\hotelbookingservice\PaymentEventConsumer.class
 com\navya\hotelbookingservice\Hotel.class
 com\navya\hotelbookingservice\BookingController.class

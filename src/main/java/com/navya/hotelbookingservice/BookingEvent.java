@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class BookingEvent implements Serializable {
-    private Long bookingId;
+    private String bookingId;
     private String userId;
     private Integer totalFare;
 

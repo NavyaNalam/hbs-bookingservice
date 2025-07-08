@@ -18,8 +18,7 @@ import java.util.Date;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    Long bookingId;
+    String bookingId;
 
     String userId; // Phone Number of the User
 

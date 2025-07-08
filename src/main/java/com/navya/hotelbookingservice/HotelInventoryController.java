@@ -29,9 +29,9 @@ public class HotelInventoryController
     HotelInventoryService hotelService;
 
     @PostMapping("add")
-    public ResponseEntity<?> add(@RequestBody Hotel hotel,
-                                          @RequestHeader("traceparent") String traceId) throws JsonProcessingException {
+    public ResponseEntity<?> add(@RequestBody Hotel hotel) throws JsonProcessingException {
 
+        //@RequestHeader("traceparent") String traceId
         Optional<Hotel> existingHotel = hotelInfoRepository.findByHotelName(hotel.getHotelName());
         if (existingHotel.isPresent()) {
             logger.info("Hotel already exists with ID: " + hotel.getHotelName());

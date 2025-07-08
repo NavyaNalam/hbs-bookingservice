@@ -74,7 +74,7 @@ public class BookingController {
     }
 
         @GetMapping("getbooking/{id}")
-        public ResponseEntity<?> findABooking (@PathVariable("id") Long id){
+        public ResponseEntity<?> findABooking (@PathVariable("id") String id){
             logger.info("Inside findABooking of BookingController");
             return ResponseEntity.ok(bookingService.findBookingById(id));
         }
