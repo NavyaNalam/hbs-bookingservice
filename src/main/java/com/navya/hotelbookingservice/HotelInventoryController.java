@@ -142,8 +142,8 @@ public class HotelInventoryController
 
     }
 
-    @PutMapping("/update-num-of-rooms/{name}")
-    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("name") String name, @RequestBody int newRoomsNum) {
+    @PutMapping("/update-num-of-rooms/{name}/{newRoomsNum}")
+    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("name") String name, @PathVariable("newRoomsNum") int newRoomsNum) {
         logger.info("Updating number of rooms for hotel: " + name + " to " + newRoomsNum);
 
         int rowUpdated = hotelService.updateNumOfRoomsAvailable(name, newRoomsNum);
