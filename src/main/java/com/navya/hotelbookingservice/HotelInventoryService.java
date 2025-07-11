@@ -35,10 +35,20 @@ public class HotelInventoryService {
         hotelRepo.deleteById(id);
     }
 
-    public int updateNumOfRoomsAvailable(String hotelName, int numOfRoom) {
-        Optional<Hotel> hotel = hotelRepo.findByHotelName(hotelName);
-        return hotel.get().getNumOfRoomsAvailable();
-    }
+    public int updateNumOfRoomsAvailable(String hotelName, int numOfRoom)  {
+                Optional<Hotel> hotel = hotelRepo.findByHotelName(hotelName);
+                if(hotel.isPresent()){
+                    Hotel existingHotel = hotel.get();
+                    existingHotel.setNumOfRoomsAvailable(numOfRoom);
+                    hotelRepo.save(existingHotel);
+                    logger.info("Updated number of available rooms for hotel: " + hotelName);
+                    return 1;
+                }else {
+                    logger.error("Hotel not found with name: " + hotelName);
+                    return 0;
+                }
+        }
+
 
 
 }

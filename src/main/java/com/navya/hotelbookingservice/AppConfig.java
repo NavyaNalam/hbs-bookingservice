@@ -43,7 +43,7 @@ public class AppConfig
         String port = String.valueOf(instances.get(0).getPort());
 
         return webClientBuilder
-                .baseUrl(String.format("http://%s:%s/api/v1/getrole/{token}", hostname, port))
+                .baseUrl(String.format("http://%s:%s/api/v1/getrole/", hostname, port))
                 .filter(new LoggingWebClientFilter())
                 .build();
     }

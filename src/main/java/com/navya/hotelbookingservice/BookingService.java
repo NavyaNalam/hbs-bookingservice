@@ -30,7 +30,10 @@ public class BookingService {
     BookingEventProducer bookingEventProducer;
 
     @Autowired
-    WebClient webClientBuilder;
+    WebClient authValidateWebClient;
+
+    @Autowired
+    WebClient authGetRoleFromTokenWebClient;
 
     @Autowired
     private HotelInventoryService hotelInventoryService;
