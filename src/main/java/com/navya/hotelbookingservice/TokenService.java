@@ -18,6 +18,9 @@ public class TokenService
     @Qualifier("authValidateWebClient")
     WebClient authValidateWebClient;
 
+    @Autowired
+    WebClient authGetRoleFromTokenWebClient;
+
     public String validateToken(String token) throws WebClientResponseException
     {
         logger.info("TokenService.validateToken() called with token: " + token);
@@ -30,9 +33,9 @@ public class TokenService
 
     public String getRoleFromToken(String token) throws WebClientResponseException
     {
-        logger.info("TokenService.validateToken() called with token: " + token);
-        return authValidateWebClient.get()
-                .header("Authorization", token)
+        logger.info("TokenService.getRoleFromToken() called with token: " + token);
+        return authGetRoleFromTokenWebClient.get()
+                .attribute("token", token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block(); // Assuming the token is valid for demonstration purposes
