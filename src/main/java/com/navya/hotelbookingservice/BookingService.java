@@ -11,8 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 @Slf4j
@@ -76,8 +79,10 @@ public class BookingService {
                     return ResponseEntity.status(500).body("Could not Book Hotel. Please try again!");
                 }
 
+                Long numOfDays = DAYS.between(booking.getStartDate().toInstant(), booking.getEndDate().toInstant());
+                logger.info("Number of Days Between Check-in and Check-out: " + numOfDays);
                 booking.setBookingStatus("pending");
-                Integer totalFare = booking.getNumOfRoomsBooked() * amountPerRoom;
+                Integer totalFare = booking.getNumOfRoomsBooked() * amountPerRoom * numOfDays.intValue();
                 booking.setTotalPrice(totalFare);
 
                 //create the booking

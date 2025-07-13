@@ -25,8 +25,8 @@ public class BookingController {
     @Autowired
     TokenService tokenService;
 
-    @GetMapping("bookings")
-    public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String token) {
+    @GetMapping("bookings/{userId}")
+    public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String token, @PathVariable String userId) {
         String phone = null;
         try {
             phone = tokenService.validateToken(token);
@@ -37,6 +37,12 @@ public class BookingController {
         if (phone.isEmpty()) {
             logger.info("Token validation failed: Phone number is empty");
             return ResponseEntity.status(401).body("Token Not Found");
+        }
+
+        if(!phone.equals(userId))
+        {
+            logger.info("Phone number mismatch");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
         }
 
         logger.info("User Fetched Bookings Successfully");
