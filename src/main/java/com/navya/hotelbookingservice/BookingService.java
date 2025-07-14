@@ -94,6 +94,7 @@ public class BookingService {
                 bookingEvent.setBookingId(booking.getBookingId());
                 bookingEvent.setTotalFare(totalFare);
                 bookingEvent.setUserId(booking.getUserId());
+                redisTemplate.opsForValue().set(booking.getBookingId().toString(), "Payment To be Initiated");
 
 /*                redisTemplate.opsForValue().set(booking.getBookingId().toString(), "Payment In Progress");
                 //Publish the booking event to Kafka

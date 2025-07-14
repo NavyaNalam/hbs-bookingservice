@@ -75,7 +75,7 @@ public class BookingController {
             logger.info("Token validation failed: Role is empty");
             return ResponseEntity.status(401).body("Invalid token or role not found");
         }
-        else if(role.equals("admin")) {
+        else if(role.equals("ADMIN")) {
             logger.info("All Bookings fetched Successfully");
             return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findAll());
         }
