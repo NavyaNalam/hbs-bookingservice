@@ -20,6 +20,7 @@ public class TokenService
     WebClient authValidateWebClient;
 
     @Autowired
+    @Qualifier("authGetRoleFromTokenWebClient")
     WebClient authGetRoleFromTokenWebClient;
 
     public String validateToken(String token) throws WebClientResponseException

@@ -26,7 +26,7 @@ public class BookingController {
     TokenService tokenService;
 
     @GetMapping("bookings/{userId}")
-    public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String token, @PathVariable String userId) {
+    public ResponseEntity<?> getAllBookingsByUserId(@RequestHeader("Authorization") String token, @PathVariable String userId) {
         String phone = null;
         try {
             phone = tokenService.validateToken(token);
@@ -46,7 +46,43 @@ public class BookingController {
         }
 
         logger.info("User Fetched Bookings Successfully");
-        return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findAll());
+        return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findBookingsByUserId(userId));
+    }
+
+    @GetMapping("allbookings/{userId}")
+    public ResponseEntity<?> getAllBookingsByAdmin(@RequestHeader("Authorization") String token, @PathVariable String userId) {
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
+            logger.info("Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Token Not Found");
+        }
+
+        if(!phone.equals(userId))
+        {
+            logger.info("Phone number mismatch");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
+        }
+
+        String role = tokenService.getRoleFromToken(token);
+
+        if(role.isEmpty()){
+            logger.info("Token validation failed: Role is empty");
+            return ResponseEntity.status(401).body("Invalid token or role not found");
+        }
+        else if(role.equals("admin")) {
+            logger.info("All Bookings fetched Successfully");
+            return ResponseEntity.ok("Bookings Fetched Successfully" + bookingService.findAll());
+        }
+        else{
+            logger.info("Unauthorized access: User is not an admin");
+            return ResponseEntity.status(403).body("Access Denied: Only admins can view all bookings");
+        }
     }
 
     @PostMapping("/book/")

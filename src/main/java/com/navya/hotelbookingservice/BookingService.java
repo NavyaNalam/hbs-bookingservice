@@ -95,20 +95,26 @@ public class BookingService {
                 bookingEvent.setTotalFare(totalFare);
                 bookingEvent.setUserId(booking.getUserId());
 
-                redisTemplate.opsForValue().set(booking.getBookingId().toString(), "Payment In Progress");
+/*                redisTemplate.opsForValue().set(booking.getBookingId().toString(), "Payment In Progress");
                 //Publish the booking event to Kafka
-                bookingEventProducer.publishEvent(bookingEvent);
-                return ResponseEntity.status(HttpStatus.CREATED).body("Booking added successfully");
+                bookingEventProducer.publishEvent(bookingEvent);*/
+                return ResponseEntity.status(HttpStatus.CREATED).body("Booking added successfully, Payment Amount:" + totalFare + " for Booking ID: " + booking.getBookingId() + " .Kindly Proceed for Payment");
 
             }
 
         }
     }
 
-    public Optional<Booking> findBookingById(String id)
+    public Optional<Booking> findBookingById(String bookingId)
     {
-        return bookingRepo.findBookingByBookingId(id);
+        return bookingRepo.findBookingByBookingId(bookingId);
     }
+
+    public Optional<List<Booking>> findBookingsByUserId(String id)
+    {
+        return bookingRepo.findBookingByUserId(id);
+    }
+
 
     // This should be coming from Payment Service not from user
 
