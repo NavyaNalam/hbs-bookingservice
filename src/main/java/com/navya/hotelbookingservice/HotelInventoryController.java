@@ -28,10 +28,35 @@ public class HotelInventoryController
     @Autowired
     HotelInventoryService hotelService;
 
-    @PostMapping("add")
-    public ResponseEntity<?> add(@RequestBody Hotel hotel) throws JsonProcessingException {
+    @PostMapping("add/{userId}")
+    public ResponseEntity<?> add(@PathVariable String userId, @RequestBody Hotel hotel, @RequestHeader("Authorization") String token) throws JsonProcessingException {
 
         //@RequestHeader("traceparent") String traceId
+
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
+            logger.info("Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Token Not Found");
+        }
+
+        if(!phone.equals(userId))
+        {
+            logger.info("Phone number mismatch");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
+        }
+        String role = tokenService.getRoleFromToken(token);
+
+        if(!role.equals("ADMIN")) {
+            logger.info("User is not an ADMIN, cannot add hotel inventory");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied. Only ADMIN can add hotel inventory");
+        }
+
         Optional<Hotel> existingHotel = hotelInfoRepository.findByHotelName(hotel.getHotelName());
         if (existingHotel.isPresent()) {
             logger.info("Hotel already exists with ID: " + hotel.getHotelName());
@@ -43,77 +68,74 @@ public class HotelInventoryController
 
         }
         logger.info("Hotel Details saved: " + hotel.toString());
-
         return ResponseEntity.status(HttpStatus.CREATED).body("Hotel Added Successfully with ID: " + hotel.getHotelName());
     }
 
-    @GetMapping("fetch")
-    public ResponseEntity<?> fetchHotel(@RequestParam String HotelName,
+    @GetMapping("fetch/{HotelName}/{userId}")
+    public ResponseEntity<?> fetchHotel(@PathVariable String HotelName, @PathVariable String userId,
                                         @RequestHeader("Authorization") String token)
     {
-        String id = null;
-        try
-        {
-            id =  tokenService.validateToken(token);
-            if( id == null)
-            {
-                logger.info("Token validation failed: Token is null");
-                return ResponseEntity.status(401).body("Invalid token");
-            }
-        }
-        catch (WebClientResponseException e)
-        {
+
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
             logger.info("Token validation failed: " + e.getMessage());
             return ResponseEntity.status(401).body("Invalid token");
         }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Token Not Found");
+        }
+
+        if(!phone.equals(userId))
+        {
+            logger.info("Phone number mismatch");
+            return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
+        }
 
         Optional<Hotel> hotelFetched = hotelService.findHotelByName(HotelName);
-        logger.info("Phone number from token: " + id);
         return ResponseEntity.ok("Hotel Details fetched Successfully: " + hotelFetched.get().toString());
     }
 
-    @GetMapping("fetchAllHotels")
-    public ResponseEntity<?> fetchAllHotels(@RequestParam String HotelName,
-                                        @RequestHeader("Authorization") String token)
+    @GetMapping("fetchAllHotels/{userId}")
+    public ResponseEntity<?> fetchAllHotels(@RequestHeader("Authorization") String token, @PathVariable String userId)
     {
-        String id = null;
-        try
-        {
-            id =  tokenService.validateToken(token);
-        }
-        catch (WebClientResponseException e)
-        {
+        String phone = null;
+        try {
+            phone = tokenService.validateToken(token);
+        } catch (WebClientResponseException e) {
             logger.info("Token validation failed: " + e.getMessage());
             return ResponseEntity.status(401).body("Invalid token");
         }
+        if (phone.isEmpty()) {
+            logger.info("Token validation failed: Phone number is empty");
+            return ResponseEntity.status(401).body("Token Not Found");
+        }
 
-        Optional<Hotel> hotelFetched = hotelService.findHotelByName(HotelName);
-        logger.info("Phone number from token: " + id);
-/*        if(!id.equals(hotelFetched.get().getId()))
+        if(!phone.equals(userId))
         {
-            logger.info("Token Validation Mismatch: " + id + " vs " + hotelFetched.get().getId());
+            logger.info("Phone number mismatch");
             return ResponseEntity.status(401).body("Invalid token or phone number mismatch");
-        }*/
-
+        }
         List<Hotel> allHotels = hotelService.getAllHotels();
-
-        return ResponseEntity.ok("Hotel Details fetched Successfully: " + allHotels);
+        return ResponseEntity.ok("Hotel Details fetched Successfully: " + allHotels.toString());
     }
 
 
-    @DeleteMapping("delete")
-    public ResponseEntity<?> deleteHotel(@RequestParam String hotelName,  @RequestHeader("Authorization") String token) {
-        String id = null;
+    @DeleteMapping("delete/{hotelName}/{userId}")
+    public ResponseEntity<?> deleteHotel(@PathVariable String hotelName, @PathVariable String userId, @RequestHeader("Authorization") String token) {
+        String phone = null;
         String role = null;
         try
         {
-            id =  tokenService.validateToken(token);
-            if(id.isEmpty()){
+            phone =  tokenService.validateToken(token);
+            if(phone.isEmpty()){
                 logger.info("Token validation failed: Token is empty");
                 return ResponseEntity.status(401).body("Invalid token");
             }
             else{
-                logger.info("Token validation successful for phone: " + id);
+                logger.info("Token validation successful for phone: " + phone);
                 role = tokenService.getRoleFromToken(token);
             }
         }
@@ -137,13 +159,14 @@ public class HotelInventoryController
             }
         } else {
             logger.info("User is not an ADMIN, cannot delete hotel inventory");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only ADMIN can delete hotel inventory");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied. Only ADMIN can delete hotel inventory");
         }
 
     }
 
-    @PutMapping("/update-num-of-rooms/{name}/{newRoomsNum}")
-    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("name") String name, @PathVariable("newRoomsNum") int newRoomsNum) {
+    @PutMapping("/update-num-of-rooms/{hotelName}/{newRoomsNum}")
+    public ResponseEntity<Integer> updateNumOfRooms(@PathVariable("hotelName") String name, @PathVariable("newRoomsNum") int newRoomsNum) {
+
         logger.info("Updating number of rooms for hotel: " + name + " to " + newRoomsNum);
 
         int rowUpdated = hotelService.updateNumOfRoomsAvailable(name, newRoomsNum);
